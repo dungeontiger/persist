@@ -6,16 +6,19 @@ import org.junit.Assert;
 public class testPersist {
 
 	@Test
-	public void testSimplePersist() throws IllegalArgumentException, IllegalAccessException 
+	public void testSimplePersist() throws IllegalArgumentException, IllegalAccessException, StorageException 
 	{
+		// object to save
 		SubjectClass testObject = new SubjectClass();
-		PersistStreamSimple stream = new PersistStreamSimple();
-		Persister persister = new Persister(stream);
 		
-		// do work
-		persister.write(testObject);
+		// concrete stream to store object
+		TigerStorageStream stream = new TigerStorageStream();
 		
-		System.out.println(stream.getStream());
+		Storage storage = new Storage(stream);
+		storage.write(testObject);
+		
+		// print out what was serialised
+		System.out.println(stream.toString());
 	}
 
 	@Test

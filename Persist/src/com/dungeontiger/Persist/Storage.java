@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
  * @author gibsons
  *
  */
-public class Storage {
+public final class Storage {
 	
 	private StorageStream stream;
 	
@@ -25,8 +25,10 @@ public class Storage {
 	 * Write the object to the stream
 	 * @param object to write
 	 * @throws StorageException 
+	 * @throws IllegalAccessException 
+	 * @throws IllegalArgumentException 
 	 */
-	public void write(Object object) throws StorageException
+	public void write(Object object) throws StorageException, IllegalArgumentException, IllegalAccessException
 	{
 		writeObject(object, null);
 	}
@@ -40,8 +42,12 @@ public class Storage {
 		return null;
 	}
 	
-	private void writeObject(Object object, String instanceName) throws StorageException
+	/*
+	 * Writes out an object
+	 */
+	private void writeObject(Object object, String instanceName) throws StorageException, IllegalArgumentException, IllegalAccessException
 	{
+		// TODO need to add this object to the map
 		Class<? extends Object> objectClass = object.getClass();
 
 		stream.startObject(objectClass.getName(), instanceName);
@@ -49,24 +55,30 @@ public class Storage {
 		stream.endObject();
 	}
 	
-	private void writeField(Field field, Object parent) throws StorageException
+	/*
+	 * Writes out a field, may call writeObject if the field contains a complex object
+	 */
+	private void writeField(Field field, Object parent) throws StorageException, IllegalArgumentException, IllegalAccessException
 	{
 		if (isSimpleType(field))
 		{
-			stream.writeField(field);
+			// just write the simple field to the stream
+			stream.writeField(field, parent);
 		}
 		else if (isCollection(field))
 		{
-			stream.startCollection(objectClass.getName(), instanceName);
-			processFields(objectClass, parent);
-			stream.endCollection();
+			// TODO: write collection
+//			stream.startCollection(objectClass.getName(), instanceName);
+//			processFields(objectClass, parent);
+//			stream.endCollection();
 		}
 		else if (isObjectReference(field))
 		{
-			
+			// TODO: check in object map
 		}
 		else if (isObject(field))
 		{
+			// call writeObject
 			writeObject(field.get(parent), field.getName());
 		}
 		else
@@ -76,7 +88,10 @@ public class Storage {
 		}
 	}
 	
-	private void processFields(Class<? extends Object> objectClass, Object object) throws StorageException
+	/*
+	 * Iterate over all contained fields.
+	 */
+	private void processFields(Class<? extends Object> objectClass, Object object) throws StorageException, IllegalArgumentException, IllegalAccessException
 	{
 		Field[] fields = objectClass.getDeclaredFields();
 		for (Field field : fields)
@@ -89,6 +104,9 @@ public class Storage {
 		}
 	}
 	
+	/*
+	 * Returns true if the field is a primative object or a captial type
+	 */
 	private boolean isSimpleType(Field field)
 	{
 		if (field.getType() == int.class ||
@@ -100,29 +118,41 @@ public class Storage {
 			field.getType() == Double.class ||
 			field.getType() == Boolean.class ||
 			field.getType() == Long.class ||
-			field.getType() == Float.class)
+			field.getType() == Float.class || 
+			field.getType() == String.class)
 		{
 			return true;
 		}
 		return false;
 	}
-	
+	/*
+	 * Returns true if the field is a collection, basic array or one of the collection type
+	 */
 	private boolean isCollection(Object object)
 	{
 		return false;
 	}
 	
+	/*
+	 * Return true if this object is a reference to an existing one
+	 */
 	private boolean isObjectReference(Object object)
 	{
 		// check to see if an instance in the object map matches this one, if it does return true
 		return false;
 	}
 	
+	/*
+	 * Returns true if this object is one that can be persisted, i.e., from a package we know?
+	 */
 	private boolean isObject(Object object)
 	{
 		return false;
 	}
 	
+	/*
+	 * Returns true if the field has the @Persistant annotation
+	 */
 	private boolean isPersistant(Field field)
 	{
 		// if has the @Persistant annotation return true
