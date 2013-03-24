@@ -7,6 +7,9 @@ import java.lang.reflect.Field;
  * @author gibsons
  *
  */
+
+// TODO: Consider splitting into read and write interfaces...they should be one time use
+
 public interface StorageStream {
 	
 	/**
@@ -28,6 +31,16 @@ public interface StorageStream {
 	 * @throws IllegalArgumentException 
 	 */
 	public void writeField(Field field, Object parent) throws IllegalArgumentException, IllegalAccessException;
+	
+	/**
+	 * Reads an object from the stream
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws NoSuchFieldException 
+	 * @throws SecurityException 
+	 */
+	public Object read() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, NoSuchFieldException;
 	
 	/**
 	 * Get a string representation of the stream

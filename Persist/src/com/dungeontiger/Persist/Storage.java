@@ -36,10 +36,15 @@ public final class Storage {
 	/**
 	 * Read an object from stream
 	 * @return object that was read
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
+	 * @throws NoSuchFieldException 
+	 * @throws SecurityException 
 	 */
-	public Object read()
+	public Object read() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, NoSuchFieldException
 	{
-		return null;
+		return stream.read();
 	}
 	
 	/*

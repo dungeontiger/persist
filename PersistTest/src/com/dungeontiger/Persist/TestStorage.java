@@ -17,11 +17,25 @@ public class TestStorage {
 		
 		Storage storage = new Storage(stream);
 		storage.write(testObject);
-		
-		// print out what was serialised
-		System.out.println(stream.toString());
-		
-		Assert.assertNotNull(stream.toString());
+		Assert.assertTrue(stream.toString().compareTo("com.dungeontiger.Persist.SubjectClass{myInt:5,myString:\"This is a string with a : in it.\",nullString:null}") == 0);
 	}
 
+	@Test 
+	public void testReadSubjectClass() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, NoSuchFieldException
+	{
+		String testString = "com.dungeontiger.Persist.SubjectClass{myInt:26,myString:\"Some text\",nullString:null}";
+		
+		// Intialize stream with test
+		TigerStorageStream stream = new TigerStorageStream(testString);
+		
+		Storage storage = new Storage(stream);
+		
+		Object obj = storage.read();
+		Assert.assertTrue(obj instanceof SubjectClass);
+		
+		SubjectClass subject = (SubjectClass)obj;
+		
+		Assert.assertEquals(26, subject.getMyInt());
+		
+	}
 }

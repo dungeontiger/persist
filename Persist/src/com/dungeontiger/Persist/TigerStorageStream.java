@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 public class TigerStorageStream implements StorageStream {
 
-	private String stream = new String();
+	private String stream;
 	private static final String DEF_SEPARATOR = ",";
 	private static final String INTERNAL_SEPARATOR = ":";
 	private static final String OPEN_OBJ = "{";
@@ -14,14 +14,24 @@ public class TigerStorageStream implements StorageStream {
 	private static final String FALSE = "false";
 	private static final String QUOTE = "\"";
 	
-	// myClass:myObject{....}
+	
+	public TigerStorageStream()
+	{
+		stream = new String();
+	}
+	
+	public TigerStorageStream(String str)
+	{
+		stream = str;
+	}
 	
 	@Override
 	public void startObject(String className, String instanceName) {
-		stream += className + INTERNAL_SEPARATOR;
+		// TODO: Do we need the internal separator if there is no object name
+		stream += className;
 		if (instanceName != null)
 		{
-			stream += instanceName;
+			stream += INTERNAL_SEPARATOR + instanceName;
 		}
 		stream += OPEN_OBJ;
 	}
@@ -31,11 +41,14 @@ public class TigerStorageStream implements StorageStream {
 		stream += CLOSE_OBJ;
 	}
 
-	// int:,
-	
 	@Override
 	public void writeField(Field field, Object parent) throws IllegalArgumentException, IllegalAccessException {
-		stream += field.getType().getName() + INTERNAL_SEPARATOR;
+	
+		if (stream.endsWith("{") != true)
+		{
+			stream += DEF_SEPARATOR;
+		}
+		stream += field.getName() + INTERNAL_SEPARATOR;
 		
 		if (field.getType() == int.class)
 		{
@@ -136,7 +149,35 @@ public class TigerStorageStream implements StorageStream {
 				stream += QUOTE + value + QUOTE;
 			}
 		}
-		stream += DEF_SEPARATOR;
+	}
+	
+	@Override
+	public Object read() throws ClassNotFoundException, InstantiationException, IllegalAccessException, SecurityException, NoSuchFieldException
+	{
+		int index = stream.indexOf(OPEN_OBJ);
+		String className = stream.substring(0, index);
+		Class<?> theClass = Class.forName(className);
+		Object obj = theClass.newInstance();
+		
+		int comma = stream.indexOf(DEF_SEPARATOR, index);
+		String fieldString = stream.substring(index + 1, comma);
+		setField(theClass, obj, fieldString);
+		System.out.println(fieldString);
+		return obj;
+	}
+	
+	private void setField(Class<?> theClass, Object obj, String fieldString) throws SecurityException, NoSuchFieldException, NumberFormatException, IllegalArgumentException, IllegalAccessException
+	{
+		int index = fieldString.indexOf(INTERNAL_SEPARATOR);
+		String fieldName = fieldString.substring(0, index);
+		String value = fieldString.substring(index + 1);
+		System.out.println(value);
+		Field field = theClass.getDeclaredField(fieldName);
+		field.setAccessible(true);
+		if (field.getType() == int.class)
+		{
+			field.setInt(obj, Integer.parseInt(value));
+		}
 	}
 	
 	@Override
